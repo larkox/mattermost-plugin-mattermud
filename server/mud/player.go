@@ -102,3 +102,8 @@ func (p *Player) CanSeeDoor(d Direction) bool {
 func (p *Player) Look() string {
 	return p.CurrentRoom.LongDescription
 }
+
+// GetRoom returns the string for the current room
+func (p *Player) GetRoom() string {
+	return p.CurrentRoom.String()
+}

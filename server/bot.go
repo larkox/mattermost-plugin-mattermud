@@ -88,4 +88,5 @@ func (p *Plugin) postBotDM(userID string, message string) error {
 
 func (p *Plugin) welcome(userID string) {
 	p.postBotDM(userID, "Welcome to MatterMUD")
+	p.postBotDM(userID, p.world.GetUser(userID).GetRoom())
 }
