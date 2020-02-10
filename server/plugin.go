@@ -1,11 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
 	"sync"
 
+	"github.com/mattermost/mattermost-plugin-mattermud/server/mud"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/pkg/errors"
+)
+
+const (
+	botUsername    = "mattermudgm"
+	botDisplayName = "Mattermud GM"
+	botDescription = "The game master of Mattermud."
 )
 
 // Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
@@ -18,11 +25,31 @@ type Plugin struct {
 	// configuration is the active plugin configuration. Consult getConfiguration and
 	// setConfiguration for usage.
 	configuration *configuration
+
+	// botUserID of the created bot account.
+	botUserID string
+
+	world mud.World
 }
 
-// ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
-func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello, world!")
-}
+// OnActivate ensure the bot account exists
+func (p *Plugin) OnActivate() error {
+	bot := &model.Bot{
+		Username:    botUsername,
+		DisplayName: botDisplayName,
+		Description: botDescription,
+	}
+	botUserID, appErr := p.Helpers.EnsureBot(bot)
+	if appErr != nil {
+		return errors.Wrap(appErr, "failed to ensure bot user")
+	}
+	p.botUserID = botUserID
 
-// See https://developers.mattermost.com/extend/plugins/server/reference/
+	p.world = mud.NewWorld(p.API)
+	err := p.world.Init()
+	if err != nil {
+		return errors.Wrap(err, "failed to init the world")
+	}
+
+	return p.API.RegisterCommand(getCommand())
+}

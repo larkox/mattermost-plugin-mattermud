@@ -1,0 +1,147 @@
+{
+    "area_id": "midgaard",
+    "rooms": [
+        {
+            "id": "temple",
+            "name": "Temple",
+            "short_description": "You are in a beautiful temple. The light coming from the windows makes you feel blessed. Many people come here to rest their wary bones from a long day of work. You can see an exit to the south.",
+            "long_description": "The temple is indeed beautiful. A huge statue of the Goddes Mirta towers in the north end of the church. Just in front of the statue, you can see the altar from where the high priest leads the people in prayer. The high walls have beautiful stained glass windows with images from the history of Midgaard. Mirta defeating the black dragon. The men worshipping Mirta while building the walls of the city. The goblin raid and Sir Callaghan fighting them. And the last one, high priest Thunderland curing taking care of the sick while the plague. So much beauty and so much history in just one place. You really feel glad you are here.",
+            "mobs": [],
+            "neighbours": {
+                "south": {
+                    "id": "marketplace"
+                }
+            }
+        },
+        {
+            "id": "marketplace",
+            "name": "Marketplace",
+            "short_description": "The marketplace, the heart of Midgaard. People go through here one direction and another, like blood in the heart. To the north, you can see the Mirta temple, always beautiful. To the west and east you see the market streets, with many shops at either side. There is also a dirty path south to one of the city gates.",
+            "long_description": "Too many people for your liking. Artisans, peddlers, alchemists, and many more, moving like ants buying this and selling that. The stairs that go up the church are full of beggars. They are not allowed inside less they tarnish the beauty of Mirtra, but there on the stairs the ask for the coins of the faithful. There is a huge contrast between the beauty and cleanliness of the temple and the marketplace. You cannot believe this strong urine hodour does not get into the church. With so many people walking around, you cannot clearly see the stores east and west, so you must go there to find out where is the shop you need.",
+            "neighbours": {
+                "north": {
+                    "id": "temple"
+                },
+                "south": {
+                    "id": "southern_city_gate"
+                },
+                "east": {
+                    "id": "eastern_market_street"
+                },
+                "west": {
+                    "id": "western_market_street"
+                }
+            }
+        },
+        {
+            "id": "southern_city_gate",
+            "name": "Southern City Gate",
+            "short_description": "This part of the city is almost deserted. The only people you see around are the workers at the gate, and the only landmark is the guard tower to the east. Seems like the last fight with the goblins have damaged the walls, and it is dangerous to go to the southern plains. Maybe when they finish repairing the gate they open it again.",
+            "long_description": "One thing can be said about the southern gate: it is a beast. Since before the times of Sir Callaghan, midgaard has been attacked by the goblins that live south of the great plains. Some people have started calling them the 'Blood Plains' due to all the lives lost there. And the last line of defense is this tremendous gate. Right now it is battered, filled with scaffolding and people on top of them trying to get it repaired. The guard tower to the east is another beast. Ten meters of pure stone that looks over the wall. They say that the tower was before the wall, and that Sir Callaghan saw the goblins coming while he was perched at the top. It is indeed one of the buildings of myths here in Midgaard.",
+            "neighbours": {
+                "north": {
+                    "id": "marketplace"
+                },
+                "east": {
+                    "id": "guard_tower",
+                    "is_locked": true
+                }
+            }
+        },
+        {
+            "id": "guard_tower",
+            "name": "Guard Tower",
+            "short_description": "The insides of the tower are plain and uninteresting. Everything is prepared to resist an attack, and nothing more. No decorations, no trophies, nothing. Just some bedrolls on the floor, and a few chairs.",
+            "long_description": "You are dissapointed. One of the buildings of myths of Midgaard, and it is so dull. The more time you spend here, the more time you want to go back through the door you came.",
+            "neighbours": {
+                "west": {
+                    "id": "southern_city_gate",
+                    "is_locked": true
+                }
+            }
+        },
+        {
+            "id": "eastern_market_street",
+            "name": "Eastern Market Street",
+            "short_description": "You are east from the marketplace. Here you see the fish and meat stands, and kitchen utensils. Not many things interesting for an adventure like you. If you go east you will get to one of the city gates.",
+            "long_description": "The smell is killing you. You are not sure if that fish is from today or from last week. Or if the smell is the fish, or the brute that is walking next to you in this river of people. You try to check the shops, but to the south you only see kitchen supplies and farming tools. To the north, more or lest the same. But it feels weird that a big section of the wall is covered by boxes.",
+            "neighbours": {
+                "north": {
+                    "id": "black_market",
+                    "is_hidden": true
+                },
+                "east": {
+                    "id": "eastern_city_gate"
+                },
+                "west": {
+                    "id": "marketplace"
+                }
+            }
+        },
+        {
+            "id": "black_market",
+            "name": "Black Market",
+            "short_description": "After passing between the boxes you find the door to this store. The shady rogues of Midgaard buy here their tools. Poison, darts, and many others. The figure behind the counter smiles at you with sharp eyes.",
+            "long_description": "The black market is not only black, but really dark. Only a few small candles make the place barely visible. You can distinguish some cabinets with tubes that look like poison. Also really weirdly shaped daggers hanging from a wall. The figure behind the counter look elvish, but you could not say for sure. Its eyes follow you at every moment, probably making sure that you are not foolish enough to try to steal anything here. That would be a big mistake.",
+            "neighbours": {
+                "south": {
+                    "id": "eastern_market_street"
+                }
+            }
+        },
+        {
+            "id": "eastern_city_gate",
+            "name": "Eastern City Gate",
+            "short_description": "The Dawn Gate opens east towards the forest. Since the rumors of strange beasts in the forest, not many people go out the walls of the city, and never get to the forest. Only adventurers and people desperate move in that direction. Most people just keep heading west back into the market.",
+            "long_description": "The Dawn Gate is white and clean, almost like the temple. Since the lands to the east have always been very peaceful, the door is always open, inviting travellers to the city. The top of the gate is ornated with images of a young Sir Callaghan walking out of the city. It is said that way before he became a knight he started his adventures going east from the city, and visiting the world beyond. Nowadays, many adventurers follow its steps, gaining experience on the peaceful areas on the forest and beyond before trying the war ravaged Blood Plains.",
+            "neighbours": {
+                "east": {
+                    "id": "__EXT__forest_entrance"
+                },
+                "west": {
+                    "id": "eastern_market_street"
+                }
+            }
+        },
+        {
+            "id": "western_market_street",
+            "name": "Western Market Street",
+            "short_description": "The west part of the market is where most of the artisans are. Smiths, leather workers... Sadly, the weapon supply is low on midgaard, and the guards are stockpiling everything. To the east you see the marketplace, and to the west is one of the city gates.",
+            "long_description": "It is very hard to breath. The smoke from the smiths, the smeels from the leather shops. Sometimes you feel like you are going to faint. The rivers of people in the city always bothered you, but with this smell is even worse. To the south you see a big shop: 'Weapons & Armors Dwayne', but when you look closer you see note on the door which says 'Closed. Come later'. To the north you see another interesting sign: 'Magic Emporium', but you just see a plain wall below the sign.",
+            "neighbours": {
+                "south": {
+                    "id": "magic_shop",
+                    "is_invisible": true
+                },
+                "east": {
+                    "id": "marketplace"
+                },
+                "west": {
+                    "id": "western_city_gate"
+                }
+            }
+        },
+        {
+            "id": "magic_shop",
+            "name": "Magic Emporium",
+            "short_description": "Magic is amazing. Who would have thought that behind that empty wall there was such a big store. Behind the counter, an afable human with a pointy hat greets you and invites you to buy soemthing.",
+            "long_description": "Magic is indeed amazing. The shop has big windows from where a lot of light comes in. But you know those are not real. There is no way in the middle of Midgaards market there are such plains. There are some windows that seem to point to the Golden Coast! Inside the shop you see staffs and scrolls of many types, along with potions and wands. The clerk is wearing a blue robe adorned with white stars.",
+            "neighbours": {
+                "north": {
+                    "id": "western_market_street"
+                }
+            }
+        },
+        {
+            "id": "western_city_gate",
+            "name": "Western City Gate",
+            "short_description": "The Dusk Gate. Something about this gate always give you the chills. When you approach the gate, the guards tell you that nobody can go through due to the sighting of plagued people at the other side. Your only option is to go back east into the market.",
+            "long_description": "The Dusk Gate has a macabre history. It is said that Sir Callaghan rode out of this gate on his late years and never came back. What came back decades later was the plague. All the population of Midgaard would have obliberated were not for High Priest Thunderbrand. It is said that the goddess Mirta healed the people through Thunderbrand's hands. The top of the gate has some drawings of the plagued walking down from the mountains into the city. Definetly, a really dark omen.",
+            "neighbours": {
+                "east": {
+                    "id": "western_market_street"
+                }
+            }
+        }
+    ]
+}
