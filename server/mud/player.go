@@ -1,5 +1,7 @@
 package mud
 
+import "fmt"
+
 // Player represents one single player
 type Player struct {
 	// UserID is Mattermos UserID
@@ -26,6 +28,8 @@ type Player struct {
 	Effects EffectList
 	// CurrentRoom shows on which room the player is currently on
 	CurrentRoom *Room
+	// Notify sends a message to a player
+	Notify func(message string)
 }
 
 // GetLeftAttack returns the attack with the weapon on the left hand
@@ -81,16 +85,20 @@ func (p *Player) IsInvisible() bool {
 }
 
 // Move moves a character in certain direction, and returns the message to show to the player
-func (p *Player) Move(d Direction) string {
+func (p *Player) Move(d Direction) {
 	if !p.CurrentRoom.CanMove(d, p.CanSeeHidden(), p.CanSeeInvisible()) {
 		if p.CanSeeDoor(d) {
-			return "The door is locked."
+			p.Notify("The door is locked.")
+			return
 		}
-		return "You cannot go in that direction."
+		p.Notify("You cannot go in that direction.")
+		return
 	}
 
+	p.CurrentRoom.Exit(p, d)
 	p.CurrentRoom = p.CurrentRoom.GetNeighbourRoom(d)
-	return p.CurrentRoom.String()
+	p.CurrentRoom.Enter(p, d)
+	p.ShowRoom()
 }
 
 // CanSeeDoor checks whether a locked door can be seen in certain direction
@@ -98,12 +106,74 @@ func (p *Player) CanSeeDoor(d Direction) bool {
 	return p.CurrentRoom.CanSeeDoor(d, p.CanSeeHidden(), p.CanSeeInvisible())
 }
 
-// Look returns the current room long description
-func (p *Player) Look() string {
-	return p.CurrentRoom.LongDescription
+// LookRoom returns the current room long description
+func (p *Player) LookRoom() {
+	p.Notify(p.CurrentRoom.Show(p.UserID, p.CanSeeHidden(), p.CanSeeInvisible(), true))
 }
 
-// GetRoom returns the string for the current room
-func (p *Player) GetRoom() string {
-	return p.CurrentRoom.String()
+// ShowRoom returns the string for the current room
+func (p *Player) ShowRoom() {
+	p.Notify(p.CurrentRoom.Show(p.UserID, p.CanSeeHidden(), p.CanSeeInvisible(), false))
+}
+
+// Show returns the string of how the user is seen
+func (p *Player) Show(canSeeHidden, canSeeInvisible bool) string {
+	if (!canSeeHidden && p.IsHidden()) ||
+		(!canSeeInvisible && p.IsInvisible()) {
+		return ""
+	}
+
+	if p.IsSleeping {
+		return fmt.Sprintf("%s is sleeping here.", p.Name)
+	}
+
+	return fmt.Sprintf("%s is here.", p.Name)
+}
+
+// NotifyExitingPlayer checks if the exitingPlayer can be seen, and sends a message to the player.
+func (p *Player) NotifyExitingPlayer(exitingPlayer *Player, d Direction) {
+	if p.IsSleeping {
+		return
+	}
+
+	if (!exitingPlayer.IsHidden() || p.CanSeeHidden()) &&
+		(!exitingPlayer.IsInvisible() || p.CanSeeInvisible()) {
+		var dString string
+		switch d {
+		case North:
+			dString = "North"
+		case South:
+			dString = "South"
+		case West:
+			dString = "West"
+		case East:
+			dString = "East"
+		}
+		message := exitingPlayer.Name + " left to the " + dString + "."
+		p.Notify(message)
+	}
+}
+
+// NotifyEnteringPlayer checks if the enteringPlayer can be seen, and sends a message to the player.
+func (p *Player) NotifyEnteringPlayer(enteringPlayer *Player, d Direction) {
+	if p.IsSleeping {
+		return
+	}
+
+	if (!enteringPlayer.IsHidden() || p.CanSeeHidden()) &&
+		(!enteringPlayer.IsInvisible() || p.CanSeeInvisible()) {
+		var dString string
+		switch d {
+		case North:
+			dString = "South"
+		case South:
+			dString = "North"
+		case West:
+			dString = "East"
+		case East:
+			dString = "West"
+		}
+		message := enteringPlayer.Name + " came from the " + dString + "."
+		p.Notify(message)
+	}
 }

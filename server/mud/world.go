@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/pkg/errors"
 )
@@ -17,9 +18,10 @@ const (
 
 // World stores all the information from the game
 type World struct {
-	api     plugin.API
-	rooms   map[string]*Room
-	players map[string]*Player
+	api       plugin.API
+	botUserID string
+	rooms     map[string]*Room
+	players   map[string]*Player
 }
 
 // JSONArea is the struct of area files of mattermud
@@ -61,9 +63,10 @@ type JSONNeighbour struct {
 }
 
 // NewWorld creates a new world
-func NewWorld(api plugin.API) World {
+func NewWorld(api plugin.API, botUserID string) World {
 	return World{
-		api: api,
+		api:       api,
+		botUserID: botUserID,
 	}
 }
 
@@ -124,7 +127,11 @@ func (w *World) NewPlayer(userID string) error {
 	}
 	w.players[userID] = &Player{
 		UserID:      userID,
+		Name:        "Placeholder",
 		CurrentRoom: w.rooms[startingRoom],
+		Notify: func(message string) {
+			w.Notify(userID, message)
+		},
 	}
 
 	return nil
@@ -149,4 +156,28 @@ func (w *World) String() string {
 		}
 	}
 	return out
+}
+
+// Notify sends a message to the user
+func (w *World) Notify(userID, message string) {
+	channel, appError := w.api.GetDirectChannel(userID, w.botUserID)
+	if appError != nil {
+		w.api.LogError("failed to notify user, err=" + appError.Error())
+		return
+	}
+	if channel == nil {
+		w.api.LogError("failed to get direct channel")
+		return
+	}
+
+	_, appError = w.api.CreatePost(&model.Post{
+		UserId:    w.botUserID,
+		ChannelId: channel.Id,
+		Message:   message,
+	})
+
+	if appError != nil {
+		w.api.LogError("failed to notify user, err=" + appError.Error())
+		return
+	}
 }

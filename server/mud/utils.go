@@ -25,7 +25,7 @@ func jsonRoomsToRooms(in map[string]*JSONRoom) (map[string]*Room, error) {
 			ShortDescription: v.ShortDescription,
 			LongDescription:  v.LongDescription,
 			Mobs:             MobList{},
-			Players:          []*Player{},
+			Players:          make(map[string]*Player),
 			Neighbours:       make(map[Direction]*RoomDoor),
 		}
 	}

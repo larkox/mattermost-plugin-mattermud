@@ -45,7 +45,7 @@ func (p *Plugin) OnActivate() error {
 	}
 	p.botUserID = botUserID
 
-	p.world = mud.NewWorld(p.API)
+	p.world = mud.NewWorld(p.API, botUserID)
 	err := p.world.Init()
 	if err != nil {
 		return errors.Wrap(err, "failed to init the world")

@@ -31,5 +31,6 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	if err != nil {
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "There has been an error creating your player: "+err.Error()), nil
 	}
+	p.welcome(args.UserId)
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Welcome to mattermud. The GM just messaged you to start the game."), nil
 }

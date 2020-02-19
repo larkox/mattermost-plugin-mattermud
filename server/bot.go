@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost-plugin-mattermud/server/mud"
@@ -61,32 +60,18 @@ func (p *Plugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 }
 
 func (p *Plugin) handleMove(player *mud.Player, d mud.Direction) {
-	p.postBotDM(player.UserID, player.Move(d))
+	player.Move(d)
 }
 
 func (p *Plugin) handleLook(player *mud.Player) {
-	p.postBotDM(player.UserID, player.Look())
-}
-
-func (p *Plugin) postBotDM(userID string, message string) error {
-	channel, appError := p.API.GetDirectChannel(userID, p.botUserID)
-	if appError != nil {
-		return appError
-	}
-	if channel == nil {
-		return fmt.Errorf("could not get direct channel for bot and user_id=%s", userID)
-	}
-
-	_, appError = p.API.CreatePost(&model.Post{
-		UserId:    p.botUserID,
-		ChannelId: channel.Id,
-		Message:   message,
-	})
-
-	return appError
+	player.LookRoom()
 }
 
 func (p *Plugin) welcome(userID string) {
-	p.postBotDM(userID, "Welcome to MatterMUD")
-	p.postBotDM(userID, p.world.GetUser(userID).GetRoom())
+	player, err := p.world.GetPlayer(userID)
+	if err != nil {
+		return
+	}
+	p.world.Notify(userID, "Welcome to MatterMUD")
+	player.ShowRoom()
 }

@@ -37,7 +37,7 @@ type Room struct {
 	// Mobs lists all the mobs present in the room
 	Mobs MobList
 	// Player lists all players in the room
-	Players []*Player
+	Players map[string]*Player
 	// Neighbours contains all the neighbour rooms to this one
 	Neighbours map[Direction]*RoomDoor
 }
@@ -105,6 +105,46 @@ func (r *Room) CanSeeDoor(d Direction, canSeeHidden, canSeeInvisible bool) bool 
 	return true
 }
 
-func (r *Room) String() string {
-	return fmt.Sprintf("%s\n\n%s", r.Name, r.ShortDescription)
+// Show returns all the visible information of the room
+func (r *Room) Show(userID string, canSeeHidden, canSeeInvisible, isLooking bool) string {
+	message := fmt.Sprintf("%s\n\n%s", r.Name, r.ShortDescription)
+	if isLooking {
+		message += fmt.Sprintf("\n\n%s", r.LongDescription)
+	}
+	var playersList string
+	for _, p := range r.Players {
+		if p.UserID == userID {
+			continue
+		}
+		playerView := p.Show(canSeeHidden, canSeeInvisible)
+		if playerView == "" {
+			continue
+		}
+
+		playersList += playerView
+	}
+
+	if playersList != "" {
+		message += fmt.Sprintf("\n\n%s", playersList)
+	}
+
+	return message
+}
+
+// Enter deals with the logic of a player entering a room when moving on direction d.
+// The logic includes adding the user to the players list and notifying the other present players.
+func (r *Room) Enter(p *Player, d Direction) {
+	for _, player := range r.Players {
+		player.NotifyEnteringPlayer(p, d)
+	}
+	r.Players[p.UserID] = p
+}
+
+// Exit deals with the logic of a player exiting a room when moving on direction d.
+// The logic includes removing the user to the players list and notifying the other present players.
+func (r *Room) Exit(p *Player, d Direction) {
+	delete(r.Players, p.UserID)
+	for _, player := range r.Players {
+		player.NotifyExitingPlayer(p, d)
+	}
 }
