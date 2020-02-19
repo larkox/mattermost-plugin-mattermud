@@ -32,7 +32,7 @@ type Plugin struct {
 	world mud.World
 }
 
-// OnActivate ensure the bot account exists
+// OnActivate handles all initialization
 func (p *Plugin) OnActivate() error {
 	bot := &model.Bot{
 		Username:    botUsername,
@@ -52,4 +52,10 @@ func (p *Plugin) OnActivate() error {
 	}
 
 	return p.API.RegisterCommand(getCommand())
+}
+
+// OnDeactivate handles all finalization
+func (p *Plugin) OnDeactivate() error {
+	p.world.Finalize()
+	return nil
 }

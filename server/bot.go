@@ -60,6 +60,10 @@ func (p *Plugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 		p.handleSleep(player)
 	case "wake":
 		p.handleWake(player)
+	case "say":
+		p.handleSay(player, args[1:])
+	case "shout":
+		p.handleShout(player, args[1:])
 	}
 }
 
@@ -77,6 +81,16 @@ func (p *Plugin) handleSleep(player *mud.Player) {
 
 func (p *Plugin) handleWake(player *mud.Player) {
 	player.Wake()
+}
+
+func (p *Plugin) handleSay(player *mud.Player, args []string) {
+	message := strings.Join(args, " ")
+	player.Say(message)
+}
+
+func (p *Plugin) handleShout(player *mud.Player, args []string) {
+	message := strings.Join(args, " ")
+	player.Shout(message)
 }
 
 func (p *Plugin) welcome(userID string) {

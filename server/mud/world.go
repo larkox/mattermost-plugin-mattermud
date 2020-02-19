@@ -117,6 +117,7 @@ func (w *World) Init() error {
 	}
 
 	w.players = make(map[string]*Player)
+	go w.garbageCollector()
 	return nil
 }
 
@@ -180,4 +181,9 @@ func (w *World) Notify(userID, message string) {
 		w.api.LogError("failed to notify user, err=" + appError.Error())
 		return
 	}
+}
+
+// Finalize handles all the important task when plugin gets disabled.
+func (w *World) Finalize() {
+	close(garbageDone)
 }

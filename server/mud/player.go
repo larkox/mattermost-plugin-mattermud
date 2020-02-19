@@ -191,6 +191,40 @@ func (p *Player) NotifyEnteringPlayer(enteringPlayer *Player, d Direction) {
 	}
 }
 
+// Say prints a message for all players on the same room
+func (p *Player) Say(message string) {
+	if p.IsSleeping {
+		p.Notify("Is hard to talk while sleeping.")
+		return
+	}
+	p.CurrentRoom.Say(p.UserID, p.Name, message, p.IsHidden(), p.IsInvisible())
+	p.Notify("You said: " + message)
+}
+
+// Shout prints a message for all players on the same area
+func (p *Player) Shout(message string) {
+	if p.IsSleeping {
+		p.Notify("No matter how loud you shout. Nobody can hear you in your dreams.")
+		return
+	}
+	p.CurrentRoom.Shout(p.UserID, p.Name, message, p.IsHidden(), p.IsInvisible())
+	p.Notify("You shouted: " + message)
+}
+
+// Hear prints a message from another user that can be heard
+func (p *Player) Hear(playerName, message string, isHidden, isInvisible bool) {
+	if p.IsSleeping {
+		return
+	}
+
+	showName := playerName
+	if (isHidden && !p.CanSeeHidden()) ||
+		(isInvisible && !p.CanSeeInvisible()) {
+		showName = "Someone"
+	}
+	p.Notify(fmt.Sprintf("%s says: %s", showName, message))
+}
+
 // Sleep puts the player to sleep.
 func (p *Player) Sleep() {
 	if p.IsSleeping {

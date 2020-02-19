@@ -3,6 +3,7 @@ package mud
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 // Min returns the minimum between two ints
@@ -27,6 +28,7 @@ func jsonRoomsToRooms(in map[string]*JSONRoom) (map[string]*Room, error) {
 			Mobs:             MobList{},
 			Players:          make(map[string]*Player),
 			Neighbours:       make(map[Direction]*RoomDoor),
+			shouts:           make(map[string]time.Time),
 		}
 	}
 

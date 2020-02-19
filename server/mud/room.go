@@ -2,6 +2,9 @@ package mud
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // Direction denotes a direction to move
@@ -40,6 +43,8 @@ type Room struct {
 	Players map[string]*Player
 	// Neighbours contains all the neighbour rooms to this one
 	Neighbours map[Direction]*RoomDoor
+	// shouts contains the latest shouts on the area
+	shouts map[string]time.Time
 }
 
 // RoomDoor stores information about the transition between a room and the next
@@ -146,5 +151,43 @@ func (r *Room) Exit(p *Player, d Direction) {
 	delete(r.Players, p.UserID)
 	for _, player := range r.Players {
 		player.NotifyExitingPlayer(p, d)
+	}
+}
+
+// Say handles when a user Say something in the room
+func (r *Room) Say(userID, userName, message string, isHidden, isInvisible bool) {
+	for _, player := range r.Players {
+		if player.UserID == userID {
+			continue
+		}
+		player.Hear(userName, message, isHidden, isInvisible)
+	}
+}
+
+// Shout handles when a user shout something from this room
+func (r *Room) Shout(userID, userName, message string, isHidden, isInvisible bool) {
+	shoutID := model.NewId()
+	r.shoutEcho(userID, shoutID, userName, message, isHidden, isInvisible)
+}
+
+// shoutEcho checks if the shout has already been heard here, and if not, prints to present players and propagate the shout
+func (r *Room) shoutEcho(userID, shoutID, userName, message string, isHidden, isInvisible bool) {
+	_, ok := r.shouts[shoutID]
+	if ok {
+		return
+	}
+
+	r.shouts[shoutID] = time.Now()
+
+	for _, player := range r.Players {
+		if player.UserID == userID {
+			continue
+		}
+		player.Hear(userName, message, isHidden, isInvisible)
+	}
+	for _, n := range r.Neighbours {
+		if r.AreaID == n.room.AreaID {
+			n.room.shoutEcho(userID, shoutID, userName, message, isHidden, isInvisible)
+		}
 	}
 }
