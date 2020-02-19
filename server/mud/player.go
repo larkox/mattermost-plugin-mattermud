@@ -86,6 +86,11 @@ func (p *Player) IsInvisible() bool {
 
 // Move moves a character in certain direction, and returns the message to show to the player
 func (p *Player) Move(d Direction) {
+	if p.IsSleeping {
+		p.Notify("You cannot sleepwalk.")
+		return
+	}
+
 	if !p.CurrentRoom.CanMove(d, p.CanSeeHidden(), p.CanSeeInvisible()) {
 		if p.CanSeeDoor(d) {
 			p.Notify("The door is locked.")
@@ -108,11 +113,19 @@ func (p *Player) CanSeeDoor(d Direction) bool {
 
 // LookRoom returns the current room long description
 func (p *Player) LookRoom() {
+	if p.IsSleeping {
+		p.Notify("No matter how hard you look, you see nothing while asleep.")
+		return
+	}
 	p.Notify(p.CurrentRoom.Show(p.UserID, p.CanSeeHidden(), p.CanSeeInvisible(), true))
 }
 
 // ShowRoom returns the string for the current room
 func (p *Player) ShowRoom() {
+	if p.IsSleeping {
+		p.Notify("You cannot see much while sleeping.")
+		return
+	}
 	p.Notify(p.CurrentRoom.Show(p.UserID, p.CanSeeHidden(), p.CanSeeInvisible(), false))
 }
 
@@ -176,4 +189,26 @@ func (p *Player) NotifyEnteringPlayer(enteringPlayer *Player, d Direction) {
 		message := enteringPlayer.Name + " came from the " + dString + "."
 		p.Notify(message)
 	}
+}
+
+// Sleep puts the player to sleep.
+func (p *Player) Sleep() {
+	if p.IsSleeping {
+		p.Notify("You are already deep asleep.")
+		return
+	}
+
+	p.IsSleeping = true
+	p.Notify("You lay down and start to sleep.")
+}
+
+// Wake wakes up the player.
+func (p *Player) Wake() {
+	if !p.IsSleeping {
+		p.Notify("You are already awake.")
+		return
+	}
+
+	p.IsSleeping = false
+	p.Notify("You wake up and stand up.")
 }

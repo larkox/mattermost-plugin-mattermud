@@ -56,6 +56,10 @@ func (p *Plugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 		p.handleMove(player, mud.West)
 	case "look":
 		p.handleLook(player)
+	case "sleep":
+		p.handleSleep(player)
+	case "wake":
+		p.handleWake(player)
 	}
 }
 
@@ -65,6 +69,14 @@ func (p *Plugin) handleMove(player *mud.Player, d mud.Direction) {
 
 func (p *Plugin) handleLook(player *mud.Player) {
 	player.LookRoom()
+}
+
+func (p *Plugin) handleSleep(player *mud.Player) {
+	player.Sleep()
+}
+
+func (p *Plugin) handleWake(player *mud.Player) {
+	player.Wake()
 }
 
 func (p *Plugin) welcome(userID string) {
