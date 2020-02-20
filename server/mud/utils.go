@@ -67,3 +67,47 @@ func jsonRoomsToRooms(in map[string]*JSONRoom) (map[string]*Room, error) {
 
 	return out, nil
 }
+
+func playerToJSONPlayer(in *Player) *JSONPlayer {
+	out := &JSONPlayer{
+		UserID:      in.UserID,
+		Name:        in.Name,
+		Stats:       in.Stats,
+		Class:       in.Class,
+		Race:        in.Race,
+		Level:       in.Level,
+		Experience:  in.Experience,
+		IsSleeping:  in.IsSleeping,
+		Inventory:   in.Inventory,
+		Equip:       in.Equip,
+		Effects:     in.Effects,
+		CurrentRoom: in.CurrentRoom.ID,
+	}
+	return out
+}
+
+func (w *World) jsonPlayerToPlayer(in *JSONPlayer) *Player {
+	room, ok := w.rooms[in.CurrentRoom]
+	if !ok {
+		room = w.rooms[w.defaultRoom]
+	}
+
+	out := &Player{
+		UserID:      in.UserID,
+		Name:        in.Name,
+		Stats:       in.Stats,
+		Class:       in.Class,
+		Race:        in.Race,
+		Level:       in.Level,
+		Experience:  in.Experience,
+		IsSleeping:  in.IsSleeping,
+		Inventory:   in.Inventory,
+		Equip:       in.Equip,
+		Effects:     in.Effects,
+		CurrentRoom: room,
+		Notify: func(message string) {
+			w.Notify(in.UserID, message)
+		},
+	}
+	return out
+}

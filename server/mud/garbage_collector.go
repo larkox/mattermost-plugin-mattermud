@@ -23,6 +23,7 @@ func finishGarbageCollection() bool {
 func (w *World) garbageCollector() {
 	for {
 		for _, room := range w.rooms {
+			time.Sleep(GCSleepTime)
 			if finishGarbageCollection() {
 				return
 			}
@@ -37,7 +38,6 @@ func (w *World) garbageCollector() {
 			// for _, p := range room.Players {
 			// 	p.Notify("An aura of cleanliness just passed through this room.")
 			// }
-			time.Sleep(GCSleepTime)
 		}
 	}
 }

@@ -11,17 +11,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	// startingRoom is the room where all players start to play
-	startingRoom = "midgaard_temple"
-)
-
 // World stores all the information from the game
 type World struct {
 	api       plugin.API
 	botUserID string
 	rooms     map[string]*Room
 	players   map[string]*Player
+	// defaultRoom is the room where all new players start, and where players end up if there is any problem with the rooms
+	defaultRoom string
 }
 
 // JSONArea is the struct of area files of mattermud
@@ -116,20 +113,31 @@ func (w *World) Init() error {
 		return err
 	}
 
+	//TODO Use JSON areas to define the default room
+	w.defaultRoom = "midgaard_temple"
+
 	w.players = make(map[string]*Player)
+	w.GetPlayers()
+
+	for _, v := range w.players {
+		v.Notify("Mattermud is back online. Welcome back!")
+	}
+
+	go w.autoSave()
 	go w.garbageCollector()
 	return nil
 }
 
 // NewPlayer creates a new player for userID and place it on the starting room
 func (w *World) NewPlayer(userID string) error {
-	if _, ok := w.players[userID]; ok {
-		return errors.New("You already have a character in mattermud")
+	if player, ok := w.players[userID]; ok {
+		player.Notify("I missed you! Thanks for coming back.")
+		return errors.New("you already have a character in mattermud. The game master just sent you a message to remember you")
 	}
 	w.players[userID] = &Player{
 		UserID:      userID,
 		Name:        "Placeholder",
-		CurrentRoom: w.rooms[startingRoom],
+		CurrentRoom: w.rooms[w.defaultRoom],
 		Notify: func(message string) {
 			w.Notify(userID, message)
 		},
@@ -186,4 +194,8 @@ func (w *World) Notify(userID, message string) {
 // Finalize handles all the important task when plugin gets disabled.
 func (w *World) Finalize() {
 	close(garbageDone)
+	for _, v := range w.players {
+		v.Notify("Mattermud is shutting down. See you soon!")
+	}
+	w.SavePlayers()
 }
