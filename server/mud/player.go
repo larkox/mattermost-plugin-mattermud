@@ -1,6 +1,10 @@
 package mud
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/pkg/errors"
+)
 
 // Player represents one single player
 type Player struct {
@@ -30,6 +34,10 @@ type Player struct {
 	CurrentRoom *Room
 	// Notify sends a message to a player
 	Notify func(message string)
+	// MaxHP denotes the Maximum Health points
+	MaxHP int
+	// CurrentHP denotes the current Health points
+	CurrentHP int
 }
 
 // GetLeftAttack returns the attack with the weapon on the left hand
@@ -245,4 +253,24 @@ func (p *Player) Wake() {
 
 	p.IsSleeping = false
 	p.Notify("You wake up and stand up.")
+}
+
+// NewPlayer creates a new player for userID and place it on the starting room
+func (w *World) NewPlayer(userID string) error {
+	if player, ok := w.players[userID]; ok {
+		player.Notify("I missed you! Thanks for coming back.")
+		return errors.New("you already have a character in mattermud. The game master just sent you a message to remember you")
+	}
+	w.players[userID] = &Player{
+		UserID:      userID,
+		Name:        "Placeholder",
+		CurrentRoom: w.rooms[w.defaultRoom],
+		Notify: func(message string) {
+			w.Notify(userID, message)
+		},
+		MaxHP:     100,
+		CurrentHP: 100,
+	}
+
+	return nil
 }

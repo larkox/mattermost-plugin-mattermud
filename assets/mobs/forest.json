@@ -1,0 +1,16 @@
+[
+    {
+        "id": "bunny",
+        "name": "Cute Bunny",
+        "stats": {
+            "strength": 1,
+            "constitution": 1,
+            "intelligence": 1,
+            "wisdom": 1,
+            "dexterity": 1,
+            "luck": 1
+        },
+        "maxHP": 10,
+        "drops": []
+    }
+]

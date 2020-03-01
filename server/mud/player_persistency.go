@@ -49,6 +49,10 @@ type JSONPlayer struct {
 	Effects EffectList
 	// CurrentRoom shows the id of the room on which the player is currently on
 	CurrentRoom string
+	// MaxHP denotes the Maximum Health points
+	MaxHP int
+	// CurrentHP denotes the current Health points
+	CurrentHP int
 }
 
 // autoSave stores the player information periodically into the persistant memory

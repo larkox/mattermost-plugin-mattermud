@@ -6,7 +6,10 @@
             "name": "Entrance to the forest",
             "short_description": "You are at the entrance of the forest. You can see to the west the city of Midgaard, beyond the fields that separate it from the forest. The forest seems too thick to go through now, but soon the path will be cleared.",
             "long_description": "Since the rumors of the forest being full of beasts, the people do not come near the forest. You can still see some people working the fields near the wall, but many of the fields near the forest are abandoned. The road that crosses the forest seems overrun by vegetation, which is weird since it has not been so long since carriages went through these roads. Something is wrong in this forest, and someone should do something about it.",
-            "mobs": [],
+            "mobs": [
+                "bunny",
+                "bunny"
+            ],
             "neighbours": {
                 "west": {
                     "id": "__EXT__midgaard_eastern_city_gate"

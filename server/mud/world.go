@@ -16,6 +16,7 @@ type World struct {
 	api       plugin.API
 	botUserID string
 	rooms     map[string]*Room
+	mobsDB    map[string]*Mob
 	players   map[string]*Player
 	// defaultRoom is the room where all new players start, and where players end up if there is any problem with the rooms
 	defaultRoom string
@@ -74,9 +75,33 @@ func (w *World) Init() error {
 		return errors.Wrap(err, "couldn't get bundle path")
 	}
 
+	err = w.LoadMobs(bundlePath)
+	if err != nil {
+		return errors.Wrap(err, "couldn't load mobs")
+	}
+
+	err = w.LoadRooms(bundlePath)
+	if err != nil {
+		return errors.Wrap(err, "couldn't load rooms")
+	}
+
+	w.players = make(map[string]*Player)
+	w.GetPlayers()
+
+	for _, v := range w.players {
+		v.Notify("Mattermud is back online. Welcome back!")
+	}
+
+	go w.autoSave()
+	go w.garbageCollector()
+	return nil
+}
+
+// LoadRooms loads all the rooms defined on the JSON files
+func (w *World) LoadRooms(bundlePath string) error {
 	areasPath := filepath.Join(bundlePath, "assets", "areas")
 	jsonRooms := make(map[string]*JSONRoom)
-	err = filepath.Walk(areasPath, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(areasPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -93,12 +118,15 @@ func (w *World) Init() error {
 		var area JSONArea
 		decoder := json.NewDecoder(file)
 		if err = decoder.Decode(&area); err != nil {
-			return nil
+			return err
 		}
 
 		for _, v := range area.Rooms {
 			v.ID = area.ID + "_" + v.ID
 			v.AreaID = area.ID
+			if _, ok := jsonRooms[v.ID]; ok {
+				return fmt.Errorf("room id '%s' duplicated", v.ID)
+			}
 			jsonRooms[v.ID] = v
 		}
 
@@ -106,9 +134,9 @@ func (w *World) Init() error {
 	})
 
 	if err != nil {
-		return errors.WithMessage(err, "OnActivate/loadWorld failed")
+		return errors.WithMessage(err, "OnActivate/LoadRooms failed")
 	}
-	w.rooms, err = jsonRoomsToRooms(jsonRooms)
+	w.rooms, err = jsonRoomsToRooms(jsonRooms, w.mobsDB)
 	if err != nil {
 		return err
 	}
@@ -116,34 +144,46 @@ func (w *World) Init() error {
 	//TODO Use JSON areas to define the default room
 	w.defaultRoom = "midgaard_temple"
 
-	w.players = make(map[string]*Player)
-	w.GetPlayers()
-
-	for _, v := range w.players {
-		v.Notify("Mattermud is back online. Welcome back!")
-	}
-
-	go w.autoSave()
-	go w.garbageCollector()
 	return nil
 }
 
-// NewPlayer creates a new player for userID and place it on the starting room
-func (w *World) NewPlayer(userID string) error {
-	if player, ok := w.players[userID]; ok {
-		player.Notify("I missed you! Thanks for coming back.")
-		return errors.New("you already have a character in mattermud. The game master just sent you a message to remember you")
-	}
-	w.players[userID] = &Player{
-		UserID:      userID,
-		Name:        "Placeholder",
-		CurrentRoom: w.rooms[w.defaultRoom],
-		Notify: func(message string) {
-			w.Notify(userID, message)
-		},
-	}
+// LoadMobs loads all mobs defined on the JSON files
+func (w *World) LoadMobs(bundlePath string) error {
+	mobsPath := filepath.Join(bundlePath, "assets", "mobs")
+	w.api.LogDebug(mobsPath)
+	w.mobsDB = make(map[string]*Mob)
+	err := filepath.Walk(mobsPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
 
-	return nil
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		var mobs []*Mob
+		decoder := json.NewDecoder(file)
+		if err = decoder.Decode(&mobs); err != nil {
+			return err
+		}
+
+		for _, mob := range mobs {
+			if _, ok := w.mobsDB[mob.ID]; ok {
+				return fmt.Errorf("Mob ID %s duplicated", mob.ID)
+			}
+			w.mobsDB[mob.ID] = mob
+			w.api.LogDebug("Loaded mob " + mob.ID)
+		}
+
+		return nil
+	})
+
+	return err
 }
 
 // GetPlayer returns a player from the player list
@@ -194,6 +234,7 @@ func (w *World) Notify(userID, message string) {
 // Finalize handles all the important task when plugin gets disabled.
 func (w *World) Finalize() {
 	close(garbageDone)
+	close(autosaveDone)
 	for _, v := range w.players {
 		v.Notify("Mattermud is shutting down. See you soon!")
 	}

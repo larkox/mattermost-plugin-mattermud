@@ -2,6 +2,7 @@ package mud
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -116,7 +117,7 @@ func (r *Room) Show(userID string, canSeeHidden, canSeeInvisible, isLooking bool
 	if isLooking {
 		message += fmt.Sprintf("\n\n%s", r.LongDescription)
 	}
-	var playersList string
+	playersList := []string{}
 	for _, p := range r.Players {
 		if p.UserID == userID {
 			continue
@@ -126,11 +127,28 @@ func (r *Room) Show(userID string, canSeeHidden, canSeeInvisible, isLooking bool
 			continue
 		}
 
-		playersList += playerView
+		playersList = append(playersList, playerView)
 	}
 
-	if playersList != "" {
-		message += fmt.Sprintf("\n\n%s", playersList)
+	if len(playersList) > 0 {
+		message += fmt.Sprintf("\n\n%s", strings.Join(playersList, "\n"))
+	}
+
+	mobsList := []string{}
+	for _, m := range r.Mobs {
+		if m.CurrentHP <= 0 {
+			continue
+		}
+		mobView := m.Show(canSeeHidden, canSeeInvisible)
+		if mobView == "" {
+			continue
+		}
+
+		mobsList = append(mobsList, mobView)
+	}
+
+	if len(mobsList) > 0 {
+		message += fmt.Sprintf("\n\n%s", strings.Join(mobsList, "\n"))
 	}
 
 	return message

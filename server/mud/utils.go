@@ -15,7 +15,7 @@ func min(a, b int) int {
 }
 
 // jsonRoomsToRooms convert imported json rooms to usable Rooms in the game
-func jsonRoomsToRooms(in map[string]*JSONRoom) (map[string]*Room, error) {
+func jsonRoomsToRooms(in map[string]*JSONRoom, mobs map[string]*Mob) (map[string]*Room, error) {
 	out := make(map[string]*Room)
 
 	for k, v := range in {
@@ -33,6 +33,13 @@ func jsonRoomsToRooms(in map[string]*JSONRoom) (map[string]*Room, error) {
 	}
 
 	for id, room := range in {
+		for _, mobID := range room.Mobs {
+			mobToAdd, ok := mobs[mobID]
+			if !ok {
+				return nil, fmt.Errorf("cannot find mob with id %s", mobID)
+			}
+			out[id].Mobs = append(out[id].Mobs, mobToAdd.Spawn())
+		}
 		for direction, door := range room.Neighbours {
 			var directionKey Direction
 			switch direction {
@@ -53,7 +60,7 @@ func jsonRoomsToRooms(in map[string]*JSONRoom) (map[string]*Room, error) {
 
 			neighbourRoom, ok := out[roomID]
 			if !ok {
-				return nil, fmt.Errorf("Cannot find neighbour with id %s for room %s", roomID, id)
+				return nil, fmt.Errorf("cannot find neighbour with id %s for room %s", roomID, id)
 			}
 
 			out[id].Neighbours[directionKey] = &RoomDoor{
@@ -81,6 +88,8 @@ func playerToJSONPlayer(in *Player) *JSONPlayer {
 		Inventory:   in.Inventory,
 		Equip:       in.Equip,
 		Effects:     in.Effects,
+		MaxHP:       in.MaxHP,
+		CurrentHP:   in.CurrentHP,
 		CurrentRoom: in.CurrentRoom.ID,
 	}
 	return out
@@ -104,6 +113,8 @@ func (w *World) jsonPlayerToPlayer(in *JSONPlayer) *Player {
 		Inventory:   in.Inventory,
 		Equip:       in.Equip,
 		Effects:     in.Effects,
+		MaxHP:       in.MaxHP,
+		CurrentHP:   in.CurrentHP,
 		CurrentRoom: room,
 		Notify: func(message string) {
 			w.Notify(in.UserID, message)
