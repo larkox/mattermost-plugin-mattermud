@@ -6,9 +6,17 @@ import (
 	"time"
 )
 
-// Min returns the minimum between two ints
+// min returns the minimum between two ints
 func min(a, b int) int {
 	if a < b {
+		return a
+	}
+	return b
+}
+
+// max returns the maximum between two ints
+func max(a, b int) int {
+	if a > b {
 		return a
 	}
 	return b
@@ -116,9 +124,7 @@ func (w *World) jsonPlayerToPlayer(in *JSONPlayer) *Player {
 		MaxHP:       in.MaxHP,
 		CurrentHP:   in.CurrentHP,
 		CurrentRoom: room,
-		Notify: func(message string) {
-			w.Notify(in.UserID, message)
-		},
 	}
+	w.InitPlayer(out)
 	return out
 }

@@ -10,7 +10,7 @@
             "dexterity": 1,
             "luck": 1
         },
-        "maxHP": 10,
+        "maxHP": 5,
         "drops": []
     }
 ]

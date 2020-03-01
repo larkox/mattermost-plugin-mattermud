@@ -12,11 +12,9 @@ const (
 	ASSleepTime = 30 * time.Minute
 )
 
-var autosaveDone = make(chan struct{})
-
 func finishAutosave() bool {
 	select {
-	case <-autosaveDone:
+	case <-worldShutDown:
 		return true
 	default:
 		return false

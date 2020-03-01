@@ -209,3 +209,13 @@ func (r *Room) shoutEcho(userID, shoutID, userName, message string, isHidden, is
 		}
 	}
 }
+
+// GetMob gets the first mob with ID mobID and returns it. Returns nil if not such mob.
+func (r *Room) GetMob(mobID string) *Mob {
+	for _, v := range r.Mobs {
+		if v.ID == mobID && v.CurrentHP > 0 {
+			return v
+		}
+	}
+	return nil
+}

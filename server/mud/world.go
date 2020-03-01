@@ -11,6 +11,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var worldShutDown = make(chan struct{})
+
 // World stores all the information from the game
 type World struct {
 	api       plugin.API
@@ -18,6 +20,7 @@ type World struct {
 	rooms     map[string]*Room
 	mobsDB    map[string]*Mob
 	players   map[string]*Player
+	battles   []*Battle
 	// defaultRoom is the room where all new players start, and where players end up if there is any problem with the rooms
 	defaultRoom string
 }
@@ -87,6 +90,8 @@ func (w *World) Init() error {
 
 	w.players = make(map[string]*Player)
 	w.GetPlayers()
+
+	w.battles = []*Battle{}
 
 	for _, v := range w.players {
 		v.Notify("Mattermud is back online. Welcome back!")
@@ -233,10 +238,64 @@ func (w *World) Notify(userID, message string) {
 
 // Finalize handles all the important task when plugin gets disabled.
 func (w *World) Finalize() {
-	close(garbageDone)
-	close(autosaveDone)
+	close(worldShutDown)
 	for _, v := range w.players {
 		v.Notify("Mattermud is shutting down. See you soon!")
 	}
 	w.SavePlayers()
+}
+
+// CreateBattle creates a new battle between the player and the mob
+func (w *World) CreateBattle(playerID string, mob *Mob) {
+	player := w.players[playerID]
+	playerBattle := w.GetPlayerBattle(player)
+	mobBattle := w.GetMobBattle(mob)
+	newBattle := mergeBattles(playerBattle, mobBattle)
+	newBattle.AddPlayer(player)
+	newBattle.AddMob(mob)
+	w.RemovePlayerBattle(player)
+	w.RemoveMobBattle(mob)
+	w.battles = append(w.battles, newBattle)
+	newBattle.Start()
+}
+
+// GetPlayerBattle gets the battle where the player is fighting
+func (w *World) GetPlayerBattle(player *Player) *Battle {
+	for _, b := range w.battles {
+		if b.IsPlayerFighting(player) {
+			return b
+		}
+	}
+	return nil
+}
+
+// GetMobBattle gest the battle where the mob is fighting
+func (w *World) GetMobBattle(mob *Mob) *Battle {
+	for _, b := range w.battles {
+		if b.IsMobFighting(mob) {
+			return b
+		}
+	}
+	return nil
+}
+
+// RemovePlayerBattle removes the battle where the player is fighting
+func (w *World) RemovePlayerBattle(player *Player) {
+	for i, b := range w.battles {
+		if b.IsPlayerFighting(player) {
+			w.battles = append(w.battles[:i], w.battles[i+1:]...)
+			return
+		}
+	}
+}
+
+// RemoveMobBattle gest the battle where the mob is fighting
+func (w *World) RemoveMobBattle(mob *Mob) {
+	for i, b := range w.battles {
+		if b.IsMobFighting(mob) {
+			w.battles = append(w.battles[:i], w.battles[i+1:]...)
+			return
+		}
+	}
+	return
 }

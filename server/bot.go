@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost-plugin-mattermud/server/mud"
@@ -64,6 +65,10 @@ func (p *Plugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 		p.handleSay(player, args[1:])
 	case "shout":
 		p.handleShout(player, args[1:])
+	case "kill":
+		p.handleKill(player, args[1:])
+	case "status":
+		p.handleStatus(player)
 	}
 }
 
@@ -91,6 +96,15 @@ func (p *Plugin) handleSay(player *mud.Player, args []string) {
 func (p *Plugin) handleShout(player *mud.Player, args []string) {
 	message := strings.Join(args, " ")
 	player.Shout(message)
+}
+
+func (p *Plugin) handleKill(player *mud.Player, args []string) {
+	objective := strings.Join(args, " ")
+	player.Kill(objective)
+}
+
+func (p *Plugin) handleStatus(player *mud.Player) {
+	player.Notify(fmt.Sprintf("%d/%d HP", player.CurrentHP, player.MaxHP))
 }
 
 func (p *Plugin) welcome(userID string) {

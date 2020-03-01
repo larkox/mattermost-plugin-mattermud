@@ -9,11 +9,9 @@ const (
 	GCSleepTime = 1 * time.Second
 )
 
-var garbageDone = make(chan struct{})
-
 func finishGarbageCollection() bool {
 	select {
-	case <-garbageDone:
+	case <-worldShutDown:
 		return true
 	default:
 		return false

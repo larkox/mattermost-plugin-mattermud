@@ -2,8 +2,14 @@ package mud
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
+)
+
+const (
+	//PlayerRegenTime marks how long the routine sleep between regens
+	PlayerRegenTime = 1 * time.Minute
 )
 
 // Player represents one single player
@@ -30,14 +36,29 @@ type Player struct {
 	Equip PlayerEquipment
 	// Effects show all the magical effects that the character is currently under
 	Effects EffectList
+	// DefaultRoom contains the default room to go in case of error or death
+	DefaultRoom *Room
 	// CurrentRoom shows on which room the player is currently on
 	CurrentRoom *Room
 	// Notify sends a message to a player
 	Notify func(message string)
+	// CreateBattle creates a battle with a mob
+	CreateBattle func(mob *Mob)
 	// MaxHP denotes the Maximum Health points
 	MaxHP int
 	// CurrentHP denotes the current Health points
 	CurrentHP int
+	// IsFighting denotes whether the player is fighting
+	IsFighting bool
+}
+
+func (p *Player) finishPlayerRoutine() bool {
+	select {
+	case <-worldShutDown:
+		return true
+	default:
+		return false
+	}
 }
 
 // GetLeftAttack returns the attack with the weapon on the left hand
@@ -72,6 +93,11 @@ func (p *Player) GetCurrentStat(s Stat) int {
 	return min(0, base+equipModifiers+effectModifiers)
 }
 
+// GetCurrentDefense returns the current defense of the character
+func (p *Player) GetCurrentDefense() int {
+	return p.GetCurrentStat(Constitution)
+}
+
 // CanSeeHidden returns whether the character can see hidden objects
 func (p *Player) CanSeeHidden() bool {
 	return p.Equip.CanSeeHidden() || p.Effects.CanSeeHidden()
@@ -96,6 +122,11 @@ func (p *Player) IsInvisible() bool {
 func (p *Player) Move(d Direction) {
 	if p.IsSleeping {
 		p.Notify("You cannot sleepwalk.")
+		return
+	}
+
+	if p.IsFighting {
+		p.Notify("You cannot leave the room while fighting!")
 		return
 	}
 
@@ -240,6 +271,11 @@ func (p *Player) Sleep() {
 		return
 	}
 
+	if p.IsFighting {
+		p.Notify("Now is not the time to sleep, you are in the middle of a fight!")
+		return
+	}
+
 	p.IsSleeping = true
 	p.Notify("You lay down and start to sleep.")
 }
@@ -265,12 +301,59 @@ func (w *World) NewPlayer(userID string) error {
 		UserID:      userID,
 		Name:        "Placeholder",
 		CurrentRoom: w.rooms[w.defaultRoom],
-		Notify: func(message string) {
-			w.Notify(userID, message)
-		},
-		MaxHP:     100,
-		CurrentHP: 100,
+		MaxHP:       100,
+		CurrentHP:   100,
+		Stats:       make(map[Stat]int),
 	}
 
+	w.InitPlayer(w.players[userID])
+
 	return nil
+}
+
+// InitPlayer initializes world related information on the player
+func (w *World) InitPlayer(player *Player) {
+	player.DefaultRoom = w.rooms[w.defaultRoom]
+	player.Notify = func(message string) {
+		w.Notify(player.UserID, message)
+	}
+	player.CreateBattle = func(mob *Mob) {
+		w.CreateBattle(player.UserID, mob)
+	}
+	player.start()
+}
+
+// Kill starts the combat with the objective
+func (p *Player) Kill(objective string) {
+	mob := p.CurrentRoom.GetMob(objective)
+	if mob == nil {
+		p.Notify(fmt.Sprintf("There is no %s here to kill.", objective))
+		return
+	}
+
+	p.CreateBattle(mob)
+}
+
+// Dead kills the player and returns it to the default room
+func (p *Player) Dead() {
+	p.CurrentRoom = p.DefaultRoom
+	p.CurrentHP = 1
+	p.Notify(fmt.Sprintf("You almost died! But a light came to your rescue and you find yourself back at %s", p.CurrentRoom.Name))
+}
+
+// start runs the player routine
+func (p *Player) start() {
+	go func() {
+		for {
+			if p.finishPlayerRoutine() {
+				return
+			}
+			toRegen := max(1, int(float64(p.MaxHP)*0.1))
+			if p.CurrentRoom == p.DefaultRoom {
+				toRegen = toRegen * 3
+			}
+			p.CurrentHP = min(p.MaxHP, p.CurrentHP+toRegen)
+			time.Sleep(PlayerRegenTime)
+		}
+	}()
 }
