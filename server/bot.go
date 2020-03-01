@@ -10,6 +10,19 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
+func getIngameHelp() string {
+	return `Ingame commands:
+	n, s, e, w, north, south, east, west: Movement commands
+	look: Show again the description of the room, with extra information
+	status: Shows your current HP
+	kill [mob]: Starts attacking the mob with that name. Example: kill bunny
+	sleep: Starts to sleep. This will silence almost all notifications from the game
+	wake: You wake up
+	say [something you want to say]: Says something so all players in the same room will see it. Example: say Hello everyone!
+	shout [something you want to shout]: Shouts something so all players in the same area will see it. Example: shout Hello everyone!
+	help: Shows the ingame help`
+}
+
 // MessageHasBeenPosted checks if the message is a DM from an user, and process the message as a command in the game
 func (p *Plugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	if p.botUserID == post.UserId {
@@ -69,6 +82,10 @@ func (p *Plugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 		p.handleKill(player, args[1:])
 	case "status":
 		p.handleStatus(player)
+	case "help":
+		p.handleHelp(player)
+	default:
+		p.handleDefault(player)
 	}
 }
 
@@ -105,6 +122,14 @@ func (p *Plugin) handleKill(player *mud.Player, args []string) {
 
 func (p *Plugin) handleStatus(player *mud.Player) {
 	player.Notify(fmt.Sprintf("%d/%d HP", player.CurrentHP, player.MaxHP))
+}
+
+func (p *Plugin) handleHelp(player *mud.Player) {
+	player.Notify(getIngameHelp())
+}
+
+func (p *Plugin) handleDefault(player *mud.Player) {
+	player.Notify("I do not understand what you say. Type `help` if you want to check all the available commands.")
 }
 
 func (p *Plugin) welcome(userID string) {
