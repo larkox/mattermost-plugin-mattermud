@@ -64,7 +64,7 @@ func (b *Battle) Start() {
 				def := player.GetCurrentDefense()
 				damage := max(att-def, 1)
 				player.CurrentHP -= damage
-				hitNotifications = append(hitNotifications, fmt.Sprintf("The %s inflicted %d damange to %s.", m.ID, damage, player.Name))
+				hitNotifications = append(hitNotifications, fmt.Sprintf("The %s inflicted %d damage to %s.", m.ID, damage, player.Name))
 				if player.CurrentHP <= 0 {
 					killNotifications = append(killNotifications, fmt.Sprintf("The %s killed %s!", m.ID, player.Name))
 				}
