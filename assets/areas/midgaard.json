@@ -109,7 +109,7 @@
             "short_description": "The west part of the market is where most of the artisans are. Smiths, leather workers... Sadly, the weapon supply is low on midgaard, and the guards are stockpiling everything. To the east you see the marketplace, and to the west is one of the city gates.",
             "long_description": "It is very hard to breath. The smoke from the smiths, the smeels from the leather shops. Sometimes you feel like you are going to faint. The rivers of people in the city always bothered you, but with this smell is even worse. To the south you see a big shop: 'Weapons & Armors Dwayne', but when you look closer you see note on the door which says 'Closed. Come later'. To the north you see another interesting sign: 'Magic Emporium', but you just see a plain wall below the sign.",
             "neighbours": {
-                "south": {
+                "north": {
                     "id": "magic_shop",
                     "is_invisible": true
                 },
@@ -127,7 +127,7 @@
             "short_description": "Magic is amazing. Who would have thought that behind that empty wall there was such a big store. Behind the counter, an afable human with a pointy hat greets you and invites you to buy soemthing.",
             "long_description": "Magic is indeed amazing. The shop has big windows from where a lot of light comes in. But you know those are not real. There is no way in the middle of Midgaards market there are such plains. There are some windows that seem to point to the Golden Coast! Inside the shop you see staffs and scrolls of many types, along with potions and wands. The clerk is wearing a blue robe adorned with white stars.",
             "neighbours": {
-                "north": {
+                "south": {
                     "id": "western_market_street"
                 }
             }
